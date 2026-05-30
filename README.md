@@ -1,6 +1,6 @@
-# Token & Usage Dashboard
+# A Little Dashboard For Us
 
-A Streamlit dashboard for tracking AI token usage, estimated costs, cached-token savings, and context pressure.
+A cute Streamlit dashboard designed as a small personal surprise: reasons, memories, date ideas, coupons, and a gentle little "us" dashboard.
 
 ## Run locally
 
@@ -18,5 +18,4 @@ Use these settings:
 - Main file path: `streamlit_app.py`
 - Python version: default is fine
 
-The app uses manual inputs and optional CSV upload. It does not connect to private billing APIs by default.
-
+Customize the sidebar fields or edit `arsenal_psg_dashboard.py` to make the memories, names, and notes more specific.
