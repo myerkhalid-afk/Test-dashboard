@@ -12,62 +12,55 @@ APP_PASSWORD = "paris"
 
 
 st.set_page_config(
-    page_title="A Little Dashboard For Us",
-    page_icon=":heart:",
+    page_title="Our Travel Log",
+    page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 
 COLORS = {
-    "rose": "#e11d48",
-    "pink": "#f9a8d4",
-    "peach": "#fed7aa",
-    "sky": "#7dd3fc",
-    "lavender": "#c4b5fd",
+    "rose": "#be123c",
+    "pink": "#fda4af",
+    "peach": "#fcd34d",
+    "sky": "#38bdf8",
+    "lavender": "#818cf8",
     "ink": "#1f2937",
     "soft": "#fff7ed",
 }
 
 PHOTO_DIR = Path(__file__).parent / "assets" / "photos"
-
-
-DEFAULT_REASONS = [
-    "You make ordinary days feel lighter.",
-    "Your laugh has this unfair ability to reset my whole mood.",
-    "I love how we can be silly and serious in the same conversation.",
-    "You make places feel warmer just by being there.",
-    "You are my favorite person to tell tiny updates to.",
-    "You make me want to notice more beautiful things.",
-    "Being around you feels like coming home and starting an adventure at the same time.",
-]
+FIRST_MESSAGE_DATE = date(2025, 9, 30)
+FIRST_MEETING_DATE = date(2025, 10, 17)
+NEXT_TRIP_DATE = date(2026, 6, 19)
+NEXT_TRIP_NAME = "London / Milan"
 
 
 DEFAULT_MEMORIES = pd.DataFrame(
     [
-        ["First spark", "That moment I realized I wanted more time with you.", 95],
-        ["Our comfort era", "The small routines, inside jokes, and easy togetherness.", 88],
-        ["The random laugh", "One of those laughs that made the whole day better.", 92],
-        ["Future plans", "The trips, food spots, and little dreams still waiting for us.", 84],
-        ["Right now", "This exact moment: a tiny web app made just to make you smile.", 100],
+        ["First iMessage", FIRST_MESSAGE_DATE.strftime("%b %d, %Y"), "You said hello.", 90],
+        ["NYC", FIRST_MEETING_DATE.strftime("%b %d, %Y"), "First time meeting in person.", 96],
+        ["Shared albums", "Ongoing", "Every trip gets a title and its own archive.", 88],
+        ["Next possible visit", "Next week, maybe", "Still undecided.", 72],
+        [NEXT_TRIP_NAME, NEXT_TRIP_DATE.strftime("%b %d, %Y"), "The next confirmed chapter.", 98],
     ],
-    columns=["Chapter", "What it means", "Smile score"],
+    columns=["Moment", "Date", "Notes", "Weight"],
 )
 
 
-DEFAULT_COUPONS = [
-    "One coffee or dessert run, no questions asked",
-    "One movie night where you pick everything",
-    "One long walk with phones mostly away",
-    "One homemade dinner attempt, bravery included",
-    "One full day of extra compliments",
-    "One emergency hug, redeemable anytime",
+DATE_IDEAS = [
+    "coffee, walk, no over-planning",
+    "good dinner reservation",
+    "museum or bookstore detour",
+    "hotel lobby tea / late-night recap",
+    "train ride playlist",
+    "one proper photo together before leaving",
 ]
 
 SHARED_ALBUMS = [
     ["I saw that! I saw the whole thing", "A caught-in-4K kind of memory", "Inside joke", "Her city / your city"],
     ["I believe in looking..looking again.. and lo...", "A gallery title with dramatic suspense", "Running bit", "Somewhere together"],
-    ["I'm talking to u from the 75th floor", "Big city, tiny us, ridiculous altitude", "Skyline trip", "Her city"],
+    ["I'm talking to u from the 75th floor", "Big city, ridiculous altitude", "Skyline trip", "Her city"],
     ["Stanley cups and massage chairs", "Peak comfort. Elite hydration. No notes.", "Cozy chaos", "Your city"],
     ["Slow down!!", "A trip title that sounds like someone had to be supervised", "Transit lore", "Somewhere else"],
     ["Private sale", "Exclusive access to whatever the bit was that day", "Shopping arc", "Her city"],
@@ -94,9 +87,9 @@ def add_css() -> None:
         .hero {
             border-radius: 18px;
             padding: 32px;
-            background: linear-gradient(120deg, #fb7185 0%, #f9a8d4 45%, #93c5fd 100%);
+            background: linear-gradient(120deg, #f8fafc 0%, #dbeafe 52%, #ffe4e6 100%);
             color: #1f2937;
-            box-shadow: 0 18px 42px rgba(225,29,72,.22);
+            box-shadow: 0 18px 42px rgba(15,23,42,.10);
         }
         .hero h1 {
             font-size: 54px;
@@ -151,16 +144,16 @@ def password_gate() -> None:
     st.markdown(
         """
         <div class="hero">
-          <span class="tiny-pill">private little corner</span>
-          <span class="tiny-pill">for two people only</span>
+          <span class="tiny-pill">private</span>
+          <span class="tiny-pill">travel log</span>
           <h1>Before you come in...</h1>
-          <p>This tiny dashboard is password-protected because the cute stuff is classified.</p>
+          <p>This is a private page for the two people it is about.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
     st.write("")
-    guess = st.text_input("Secret word", type="password", placeholder="hint: city we spent valentine's in?")
+    guess = st.text_input("Secret word", type="password", placeholder="hint: the city")
     col_a, col_b = st.columns([0.25, 0.75])
     with col_a:
         unlock = st.button("Unlock", use_container_width=True)
@@ -169,7 +162,7 @@ def password_gate() -> None:
             st.session_state.unlocked = True
             st.rerun()
         else:
-            st.error("Not quite. Cute security remains undefeated.")
+            st.error("Not quite.")
     st.stop()
 
 
@@ -208,25 +201,23 @@ def auto_confetti(enabled: bool) -> None:
 
 
 def sidebar() -> dict:
-    st.sidebar.title("Make It Yours")
-    your_name = st.sidebar.text_input("Your name", "Me")
-    her_name = st.sidebar.text_input("Her name", "My favorite person")
-    start_date = st.sidebar.date_input("A meaningful date", value=date(2024, 1, 1))
-    anniversary = st.sidebar.date_input("Next date to count down to", value=date(date.today().year, 12, 31))
-    if anniversary < date.today():
-        anniversary = anniversary.replace(year=date.today().year + 1)
+    st.sidebar.title("Settings")
+    your_name = st.sidebar.text_input("Your name", "Myer")
+    her_name = st.sidebar.text_input("Her name", "Her")
+    start_date = st.sidebar.date_input("First iMessage", value=FIRST_MESSAGE_DATE)
+    anniversary = st.sidebar.date_input("Next confirmed trip", value=NEXT_TRIP_DATE)
 
     headline = st.sidebar.text_input(
         "Headline",
-        "A tiny corner of the internet made just for you",
+        "Our travel log",
     )
     note = st.sidebar.text_area(
         "Main note",
-        "I made this because I wanted something cute, a little nerdy, and very us. "
-        "If this makes you smile, it worked.",
+        "A private dashboard for the trips, albums, dates, and oddly specific titles "
+        "that have been collecting since the first hello.",
         height=120,
     )
-    show_confetti = st.sidebar.toggle("Confetti on refresh", value=True)
+    show_confetti = st.sidebar.toggle("Subtle page animation", value=False)
     auto_refresh = st.sidebar.toggle("Gentle auto-refresh", value=False)
     refresh_seconds = st.sidebar.slider("Refresh every", 20, 180, 60, step=10)
     if auto_refresh:
@@ -270,7 +261,7 @@ def hero(settings: dict) -> None:
         <div class="hero">
           <span class="tiny-pill">for {settings['her_name']}</span>
           <span class="tiny-pill">from {settings['your_name']}</span>
-          <span class="tiny-pill">{photo_count} favorite photo{'s' if photo_count != 1 else ''} loaded</span>
+          <span class="tiny-pill">{photo_count} photo{'s' if photo_count != 1 else ''} loaded</span>
           <h1>{settings['headline']}</h1>
           <p>{settings['note']}</p>
         </div>
@@ -280,26 +271,32 @@ def hero(settings: dict) -> None:
 
 
 def metrics(settings: dict) -> None:
-    together_days = days_between(settings["start_date"], date.today())
+    since_first_message = days_between(settings["start_date"], date.today())
+    since_nyc = days_between(FIRST_MEETING_DATE, date.today())
     countdown = days_between(date.today(), settings["anniversary"])
     cols = st.columns(4)
-    cols[0].metric("Days Since That Date", f"{together_days:,}", "and counting")
-    cols[1].metric("Next Countdown", f"{countdown:,}", "days away")
-    cols[2].metric("Smile Probability", "99.9%", "conservative estimate")
-    cols[3].metric("Cute Dashboard Status", "Fully operational", "friendship-threateningly adorable")
+    cols[0].metric("Since First iMessage", f"{since_first_message:,}", "Sep 30, 2025")
+    cols[1].metric("Since NYC", f"{since_nyc:,}", "Oct 17, 2025")
+    cols[2].metric(f"Until {NEXT_TRIP_NAME}", f"{countdown:,}", "starts Jun 19, 2026")
+    cols[3].metric("Shared Albums", f"{len(SHARED_ALBUMS)}", "and counting")
 
 
-def reason_machine(settings: dict) -> None:
-    if "reason_index" not in st.session_state:
-        st.session_state.reason_index = random.randrange(len(DEFAULT_REASONS))
-    if st.button("Show me another reason", use_container_width=True):
-        st.session_state.reason_index = (st.session_state.reason_index + 1) % len(DEFAULT_REASONS)
-    reason = DEFAULT_REASONS[st.session_state.reason_index]
+def milestone_card() -> None:
+    milestones = [
+        ("First message", "Sep 30, 2025", "The first hello on iMessage."),
+        ("First time meeting", "Oct 17, 2025", "NYC. The online thing became real life."),
+        ("Next possible visit", "Next week", "Still undecided, which is very on-brand for travel planning."),
+        (NEXT_TRIP_NAME, "Jun 19, 2026", "She gets there. The next confirmed album starts."),
+    ]
+    labels = [item[0] for item in milestones]
+    selected_label = st.selectbox("Open a milestone", labels)
+    selected = next(item for item in milestones if item[0] == selected_label)
     st.markdown(
         f"""
         <div class="love-card">
-          <div style="font-size:14px; font-weight:700; color:#e11d48;">REASON #{st.session_state.reason_index + 1}</div>
-          <div style="font-size:25px; font-weight:750; margin-top:8px;">{reason}</div>
+          <div style="font-size:14px; font-weight:700; color:#e11d48;">{selected[1]}</div>
+          <div style="font-size:28px; font-weight:750; margin-top:8px;">{selected[0]}</div>
+          <div style="font-size:16px; margin-top:10px;">{selected[2]}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -312,13 +309,13 @@ def photo_wall() -> None:
         st.info("Add photos to assets/photos to turn this into a personal scrapbook.")
         return
 
-    st.subheader("A Few Favorite Us Moments")
+    st.subheader("Selected Photos")
     st.caption("These are pulled from the photos you added for the app.")
     cols = st.columns(min(len(photos), 3))
     captions = [
-        "Exhibit A: evidence of us being cute.",
-        "A tiny memory with main-character energy.",
-        "One for the smile archive.",
+        "Saved for the archive.",
+        "One of the better frames.",
+        "Added to the record.",
     ]
     for idx, photo in enumerate(photos):
         with cols[idx % len(cols)]:
@@ -343,31 +340,31 @@ def memory_chart(memories: pd.DataFrame) -> None:
         alt.Chart(memories)
         .mark_bar(cornerRadiusTopRight=8, cornerRadiusBottomRight=8)
         .encode(
-            y=alt.Y("Chapter:N", sort=None, title=None),
-            x=alt.X("Smile score:Q", scale=alt.Scale(domain=[0, 100])),
+            y=alt.Y("Moment:N", sort=None, title=None),
+            x=alt.X("Weight:Q", scale=alt.Scale(domain=[0, 100])),
             color=alt.Color(
-                "Chapter:N",
+                "Moment:N",
                 legend=None,
                 scale=alt.Scale(range=[COLORS["rose"], COLORS["pink"], COLORS["sky"], COLORS["lavender"], COLORS["peach"]]),
             ),
-            tooltip=["Chapter", "What it means", "Smile score"],
+            tooltip=["Moment", "Date", "Notes", "Weight"],
         )
         .properties(height=300)
     )
     st.altair_chart(chart, use_container_width=True)
 
 
-def love_coupon() -> None:
-    if "coupon" not in st.session_state:
-        st.session_state.coupon = random.choice(DEFAULT_COUPONS)
-    if st.button("Generate a tiny coupon", use_container_width=True):
-        st.session_state.coupon = random.choice(DEFAULT_COUPONS)
+def date_idea_picker() -> None:
+    if "date_idea" not in st.session_state:
+        st.session_state.date_idea = random.choice(DATE_IDEAS)
+    if st.button("Pick a low-effort plan", use_container_width=True):
+        st.session_state.date_idea = random.choice(DATE_IDEAS)
     st.markdown(
         f"""
         <div class="love-card">
-          <div style="font-size:14px; font-weight:700; color:#2563eb;">REDEEMABLE COUPON</div>
-          <div style="font-size:24px; font-weight:750; margin-top:8px;">{st.session_state.coupon}</div>
-          <div style="font-size:13px; margin-top:10px; color:#64748b;">Terms: valid whenever you need it. Expiry: absolutely never.</div>
+          <div style="font-size:14px; font-weight:700; color:#2563eb;">NEXT VISIT OPTION</div>
+          <div style="font-size:24px; font-weight:750; margin-top:8px;">{st.session_state.date_idea}</div>
+          <div style="font-size:13px; margin-top:10px; color:#64748b;">Simple plans tend to survive travel days.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -387,7 +384,7 @@ def album_frame() -> pd.DataFrame:
             "Online / distance": 65,
         }
     ).fillna(75)
-    albums["Cuteness"] = [
+    albums["Memory weight"] = [
         92, 86, 95, 90, 82, 79, 93, 88, 84, 91, 87, 89, 94, 83, 81, 90, 96, 92
     ]
     return albums
@@ -395,9 +392,9 @@ def album_frame() -> pd.DataFrame:
 
 def album_explorer() -> None:
     albums = album_frame()
-    st.subheader("Our Shared Album Universe")
+    st.subheader("Shared Album Index")
     st.caption(
-        "Every trip gets a shared album. Which is honestly an elite long-distance relationship operating system."
+        "Every trip gets an album. The titles are basically their own timeline."
     )
 
     top = st.columns([0.9, 1.1])
@@ -417,7 +414,7 @@ def album_explorer() -> None:
     st.markdown(
         f"""
         <div class="love-card">
-          <div style="font-size:14px; font-weight:700; color:#e11d48;">SHARED ALBUM #{int(selected['Chapter'])}</div>
+          <div style="font-size:14px; font-weight:700; color:#e11d48;">ALBUM #{int(selected['Chapter'])}</div>
           <div style="font-size:27px; font-weight:800; margin-top:8px;">{selected['Album']}</div>
           <div style="font-size:16px; margin-top:10px;">{selected['Meaning']}</div>
           <div style="font-size:13px; margin-top:12px; color:#64748b;">
@@ -431,8 +428,8 @@ def album_explorer() -> None:
     st.write("")
     c1, c2, c3 = st.columns(3)
     c1.metric("Shared albums", len(albums), "since you met")
-    c2.metric("Transit-coded lore", int((albums["Place"] == "Transit").sum()), "airport/train/bus energy")
-    c3.metric("Somewhere-else chapters", int((albums["Place"] == "Somewhere else").sum()), "little adventures")
+    c2.metric("Transit Albums", int((albums["Place"] == "Transit").sum()), "airport/train/bus")
+    c3.metric("Away Trips", int((albums["Place"] == "Somewhere else").sum()), "not your city, not hers")
 
 
 def album_charts() -> None:
@@ -444,7 +441,7 @@ def album_charts() -> None:
             .mark_circle(size=260, opacity=0.85)
             .encode(
                 x=alt.X("Chapter:Q", title="Album chapter"),
-                y=alt.Y("Cuteness:Q", scale=alt.Scale(domain=[70, 100])),
+                y=alt.Y("Memory weight:Q", scale=alt.Scale(domain=[70, 100])),
                 color=alt.Color(
                     "Place:N",
                     scale=alt.Scale(
@@ -472,54 +469,54 @@ def album_charts() -> None:
 
 
 def next_trip_chooser() -> None:
-    st.subheader("Next Shared Album Name Generator")
-    location = st.selectbox("Where is the next chapter?", ["my city", "her city", "somewhere else", "airport/train chaos"])
-    mood = st.selectbox("What is the likely vibe?", ["cozy", "chaotic", "fancy", "food-focused", "sleepy", "main character"])
+    st.subheader("Next Album Title Drafts")
+    location = st.selectbox("Where is the next chapter?", ["my city", "her city", "somewhere else", "airport/train"])
+    mood = st.selectbox("Likely tone", ["low-key", "messy travel day", "nice dinner", "food-focused", "sleepy", "good story"])
     seed = f"{location}-{mood}-{date.today()}"
     random.seed(seed)
     starters = {
-        "cozy": ["Soft launch but make it literal", "Quiet little corner", "No rush, just us"],
-        "chaotic": ["Why is this happening again", "We had one job", "Incident report pending"],
-        "fancy": ["Reservations and revelations", "Two outfits too powerful", "This could be a perfume ad"],
+        "low-key": ["No rush, just us", "A normal day, somehow not normal", "Coffee before logistics"],
+        "messy travel day": ["We had one job", "Gate change behaviour", "Why are there suitcases here again"],
+        "nice dinner": ["Reservation evidence", "Dressed properly for once", "This deserved better lighting"],
         "food-focused": ["She said one bite", "Fork custody battle", "The sauce deserved a title"],
-        "sleepy": ["Five more minutes", "Jet lag but cute", "Nap committee approved"],
-        "main character": ["Walking like the soundtrack knows us", "This episode has range", "Main plot, no filler"],
+        "sleepy": ["Five more minutes", "Jet lag negotiations", "The nap agenda"],
+        "good story": ["This needs an album title", "Plot development", "The recap will be long"],
     }
     title = random.choice(starters[mood])
-    st.success(f"Suggested album title: {title}")
+    st.success(f"Draft title: {title}")
 
 
 def tiny_future_planner() -> None:
-    st.subheader("Tiny Future Planner")
+    st.subheader("Next Trip Planner")
     ideas = st.multiselect(
-        "Pick a vibe for our next plan",
+        "Keep track of what sounds worth doing",
         [
-            "cozy dinner",
-            "sunset walk",
-            "dessert mission",
-            "movie night",
-            "day trip",
-            "bookstore wander",
-            "dress-up date",
-            "lazy Sunday",
+            "coffee",
+            "dinner reservation",
+            "walkable neighborhood",
+            "museum",
+            "bookstore",
+            "good dessert",
+            "train photo",
+            "one proper picture together",
         ],
-        default=["dessert mission", "sunset walk"],
+        default=["coffee", "dinner reservation"],
     )
-    budget = st.slider("Energy level required", 1, 10, 4)
+    budget = st.slider("How much planning energy?", 1, 10, 4)
     if ideas:
-        st.success(f"Plan seed: {', '.join(ideas)}. Energy level: {budget}/10. Very doable. Very cute.")
+        st.success(f"Plan seed: {', '.join(ideas)}. Planning energy: {budget}/10.")
     else:
-        st.info("No pressure. Sometimes the best plan is just being together.")
+        st.info("No forced itinerary. Keep it open.")
 
 
 def message_builder(settings: dict) -> None:
-    st.subheader("A Little Note Generator")
-    mood = st.selectbox("What kind of note?", ["soft", "silly", "romantic", "encouraging"])
+    st.subheader("Short Note Draft")
+    mood = st.selectbox("Tone", ["straightforward", "dry", "travel", "appreciative"])
     lines = {
-        "soft": f"Hi {settings['her_name']}. I hope this little page feels like a warm hand squeeze.",
-        "silly": f"Official dashboard finding: {settings['her_name']} remains dangerously cute. Further study required.",
-        "romantic": f"Somehow, out of all the timelines, I got the one where I get to know you. Lucky me.",
-        "encouraging": f"Whatever today feels like, I am in your corner. Always.",
+        "straightforward": f"I made this as a private place for our trips, albums, and the titles only we understand.",
+        "dry": "This is either thoughtful or a sign I should not be left alone with dashboard tools.",
+        "travel": f"Next confirmed chapter: {NEXT_TRIP_NAME}, starting {NEXT_TRIP_DATE.strftime('%B %d, %Y')}.",
+        "appreciative": "I like that we have a whole archive already. The names alone are worth keeping.",
     }
     st.text_area("Copyable note", lines[mood], height=110)
 
@@ -534,7 +531,7 @@ st.write("")
 metrics(settings)
 
 overview, albums_tab, memories_tab, notes_tab, planner_tab = st.tabs(
-    ["Smile Dashboard", "Shared Albums", "Our Little Timeline", "Notes & Coupons", "Next Date Idea"]
+    ["Overview", "Shared Albums", "Timeline", "Notes", "Next Trip"]
 )
 
 with overview:
@@ -542,32 +539,34 @@ with overview:
     with left:
         featured_photo()
     with right:
-        st.subheader("Reason Machine")
-        reason_machine(settings)
+        st.subheader("Milestones")
+        milestone_card()
 
     st.divider()
-    st.subheader("Today, Scientifically")
+    st.subheader("Where Things Stand")
     left_chart, right_note = st.columns([1, 0.9])
     with left_chart:
-        mood = pd.DataFrame(
+        progress = pd.DataFrame(
             [
-                ["Missing you", 82],
-                ["Thinking about you", 96],
-                ["Wanting snacks together", 88],
-                ["General fondness", 100],
+                ["First iMessage", days_between(FIRST_MESSAGE_DATE, date.today())],
+                ["First NYC meeting", days_between(FIRST_MEETING_DATE, date.today())],
+                [f"Until {NEXT_TRIP_NAME}", days_between(date.today(), NEXT_TRIP_DATE)],
+                ["Shared albums", len(SHARED_ALBUMS)],
             ],
-            columns=["Metric", "Score"],
+            columns=["Metric", "Value"],
         )
         chart = (
-            alt.Chart(mood)
-            .mark_arc(innerRadius=55)
+            alt.Chart(progress)
+            .mark_bar(cornerRadiusTopRight=8, cornerRadiusBottomRight=8)
             .encode(
-                theta="Score:Q",
+                x=alt.X("Value:Q", title=None),
+                y=alt.Y("Metric:N", sort=None, title=None),
                 color=alt.Color(
                     "Metric:N",
+                    legend=None,
                     scale=alt.Scale(range=[COLORS["rose"], COLORS["pink"], COLORS["sky"], COLORS["lavender"]]),
                 ),
-                tooltip=["Metric", "Score"],
+                tooltip=["Metric", "Value"],
             )
             .properties(height=310)
         )
@@ -576,12 +575,12 @@ with overview:
         st.markdown(
             """
             <div class="love-card">
-              <div style="font-size:14px; font-weight:700; color:#e11d48;">DASHBOARD FINDING</div>
+              <div style="font-size:14px; font-weight:700; color:#e11d48;">CURRENT FILE</div>
               <div style="font-size:25px; font-weight:750; margin-top:8px;">
-                The data strongly suggests that you two are, in fact, very cute.
+                First hello: Sep 30, 2025. First meeting: Oct 17, 2025. Next confirmed trip: London / Milan.
               </div>
               <div style="font-size:14px; color:#64748b; margin-top:10px;">
-                Confidence interval: basically obvious.
+                The shared albums are the better evidence.
               </div>
             </div>
             """,
@@ -598,8 +597,8 @@ with albums_tab:
 with memories_tab:
     photo_wall()
     st.divider()
-    st.subheader("Our Little Timeline")
-    st.caption("Edit the memories in the code later to make this extremely specific.")
+    st.subheader("Timeline")
+    st.caption("Actual dates and trip markers.")
     st.dataframe(DEFAULT_MEMORIES, hide_index=True, use_container_width=True)
     memory_chart(DEFAULT_MEMORIES)
 
@@ -608,16 +607,16 @@ with notes_tab:
     with left:
         message_builder(settings)
     with right:
-        st.subheader("Tiny Coupon")
-        love_coupon()
+        st.subheader("Low-Effort Plan")
+        date_idea_picker()
 
 with planner_tab:
     tiny_future_planner()
     st.divider()
-    st.subheader("A Small Promise")
+    st.subheader("Confirmed Next Chapter")
     st.write(
-        "This page can change over time. New memories, new jokes, new plans, new reasons. "
-        "The point is not the dashboard. The point is you."
+        f"{NEXT_TRIP_NAME} starts on {NEXT_TRIP_DATE.strftime('%B %d, %Y')}. "
+        "The album title can wait until the trip earns it."
     )
 
 st.caption(f"Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
