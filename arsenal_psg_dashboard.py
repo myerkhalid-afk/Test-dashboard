@@ -13,7 +13,7 @@ APP_PASSWORD = "paris"
 
 st.set_page_config(
     page_title="A Little Dashboard For Us",
-    page_icon="heart",
+    page_icon=":heart:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -64,6 +64,27 @@ DEFAULT_COUPONS = [
     "One emergency hug, redeemable anytime",
 ]
 
+SHARED_ALBUMS = [
+    ["I saw that! I saw the whole thing", "A caught-in-4K kind of memory", "Inside joke", "Her city / your city"],
+    ["I believe in looking..looking again.. and lo...", "A gallery title with dramatic suspense", "Running bit", "Somewhere together"],
+    ["I'm talking to u from the 75th floor", "Big city, tiny us, ridiculous altitude", "Skyline trip", "Her city"],
+    ["Stanley cups and massage chairs", "Peak comfort. Elite hydration. No notes.", "Cozy chaos", "Your city"],
+    ["Slow down!!", "A trip title that sounds like someone had to be supervised", "Transit lore", "Somewhere else"],
+    ["Private sale", "Exclusive access to whatever the bit was that day", "Shopping arc", "Her city"],
+    ["The one where she skipflagged", "An album title that deserves its own documentary", "Legendary incident", "Somewhere else"],
+    ["Ajeeb Dastaan Hai Yeh", "A Bollywood-title-level chapter of the story", "Soft dramatic", "Your city"],
+    ["AI remixes", "Proof that even the machines got dragged into the bit", "Creative chaos", "Online / distance"],
+    ["Mugga", "Short title. Strong lore. No outsiders allowed.", "Inside joke", "Her city"],
+    ["Hair Abu? weather said no", "The forecast became a character in the relationship", "Weather drama", "Somewhere else"],
+    ["Swingers.. and put me down for a 2", "A title that immediately raises questions", "Comedy file", "Your city"],
+    ["Discovering London fog and beyond", "Soft weather, big feelings, excellent title", "Travel chapter", "Somewhere else"],
+    ["Why are there suitcases here", "Long-distance relationship core memory", "Airport energy", "Transit"],
+    ["The next one comes in 30 mins", "A public-transit cliffhanger", "Transit lore", "Somewhere else"],
+    ["Quiet zone violation", "The quiet zone never stood a chance", "Chaos", "Transit"],
+    ["She fed me eggs...then beat me", "Breakfast, betrayal, and probably laughter", "Food + games", "Her city"],
+    ["ACE'd it", "A winning chapter, obviously", "Victory lap", "Somewhere together"],
+]
+
 
 def add_css() -> None:
     st.markdown(
@@ -73,9 +94,7 @@ def add_css() -> None:
         .hero {
             border-radius: 18px;
             padding: 32px;
-            background:
-                radial-gradient(circle at 15% 20%, rgba(255,255,255,.52), transparent 20%),
-                linear-gradient(120deg, #fb7185 0%, #f9a8d4 38%, #93c5fd 100%);
+            background: linear-gradient(120deg, #fb7185 0%, #f9a8d4 45%, #93c5fd 100%);
             color: #1f2937;
             box-shadow: 0 18px 42px rgba(225,29,72,.22);
         }
@@ -151,7 +170,6 @@ def password_gate() -> None:
             st.rerun()
         else:
             st.error("Not quite. Cute security remains undefeated.")
-    st.caption("Default secret is set in the app code. Change `APP_PASSWORD` before pushing if you want.")
     st.stop()
 
 
@@ -356,6 +374,121 @@ def love_coupon() -> None:
     )
 
 
+def album_frame() -> pd.DataFrame:
+    albums = pd.DataFrame(SHARED_ALBUMS, columns=["Album", "Meaning", "Vibe", "Place"])
+    albums["Chapter"] = range(1, len(albums) + 1)
+    albums["Distance score"] = albums["Place"].map(
+        {
+            "Her city": 78,
+            "Your city": 70,
+            "Somewhere else": 88,
+            "Somewhere together": 92,
+            "Transit": 96,
+            "Online / distance": 65,
+        }
+    ).fillna(75)
+    albums["Cuteness"] = [
+        92, 86, 95, 90, 82, 79, 93, 88, 84, 91, 87, 89, 94, 83, 81, 90, 96, 92
+    ]
+    return albums
+
+
+def album_explorer() -> None:
+    albums = album_frame()
+    st.subheader("Our Shared Album Universe")
+    st.caption(
+        "Every trip gets a shared album. Which is honestly an elite long-distance relationship operating system."
+    )
+
+    top = st.columns([0.9, 1.1])
+    with top[0]:
+        vibe = st.selectbox("Filter by vibe", ["All"] + sorted(albums["Vibe"].unique().tolist()))
+    with top[1]:
+        place = st.selectbox("Filter by place", ["All"] + sorted(albums["Place"].unique().tolist()))
+
+    filtered = albums.copy()
+    if vibe != "All":
+        filtered = filtered[filtered["Vibe"] == vibe]
+    if place != "All":
+        filtered = filtered[filtered["Place"] == place]
+
+    selected_album = st.selectbox("Open an album title", filtered["Album"].tolist())
+    selected = albums[albums["Album"] == selected_album].iloc[0]
+    st.markdown(
+        f"""
+        <div class="love-card">
+          <div style="font-size:14px; font-weight:700; color:#e11d48;">SHARED ALBUM #{int(selected['Chapter'])}</div>
+          <div style="font-size:27px; font-weight:800; margin-top:8px;">{selected['Album']}</div>
+          <div style="font-size:16px; margin-top:10px;">{selected['Meaning']}</div>
+          <div style="font-size:13px; margin-top:12px; color:#64748b;">
+            Vibe: {selected['Vibe']} | Place: {selected['Place']}
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Shared albums", len(albums), "since you met")
+    c2.metric("Transit-coded lore", int((albums["Place"] == "Transit").sum()), "airport/train/bus energy")
+    c3.metric("Somewhere-else chapters", int((albums["Place"] == "Somewhere else").sum()), "little adventures")
+
+
+def album_charts() -> None:
+    albums = album_frame()
+    left, right = st.columns([1.15, 0.85])
+    with left:
+        chart = (
+            alt.Chart(albums)
+            .mark_circle(size=260, opacity=0.85)
+            .encode(
+                x=alt.X("Chapter:Q", title="Album chapter"),
+                y=alt.Y("Cuteness:Q", scale=alt.Scale(domain=[70, 100])),
+                color=alt.Color(
+                    "Place:N",
+                    scale=alt.Scale(
+                        range=[COLORS["rose"], COLORS["sky"], COLORS["lavender"], COLORS["peach"], "#86efac", "#facc15"]
+                    ),
+                ),
+                tooltip=["Chapter", "Album", "Vibe", "Place", "Meaning"],
+            )
+            .properties(height=330)
+        )
+        st.altair_chart(chart, use_container_width=True)
+    with right:
+        place_counts = albums.groupby("Place").size().reset_index(name="Albums")
+        donut = (
+            alt.Chart(place_counts)
+            .mark_arc(innerRadius=55, outerRadius=105)
+            .encode(
+                theta="Albums:Q",
+                color=alt.Color("Place:N", legend=None),
+                tooltip=["Place", "Albums"],
+            )
+            .properties(height=330)
+        )
+        st.altair_chart(donut, use_container_width=True)
+
+
+def next_trip_chooser() -> None:
+    st.subheader("Next Shared Album Name Generator")
+    location = st.selectbox("Where is the next chapter?", ["my city", "her city", "somewhere else", "airport/train chaos"])
+    mood = st.selectbox("What is the likely vibe?", ["cozy", "chaotic", "fancy", "food-focused", "sleepy", "main character"])
+    seed = f"{location}-{mood}-{date.today()}"
+    random.seed(seed)
+    starters = {
+        "cozy": ["Soft launch but make it literal", "Quiet little corner", "No rush, just us"],
+        "chaotic": ["Why is this happening again", "We had one job", "Incident report pending"],
+        "fancy": ["Reservations and revelations", "Two outfits too powerful", "This could be a perfume ad"],
+        "food-focused": ["She said one bite", "Fork custody battle", "The sauce deserved a title"],
+        "sleepy": ["Five more minutes", "Jet lag but cute", "Nap committee approved"],
+        "main character": ["Walking like the soundtrack knows us", "This episode has range", "Main plot, no filler"],
+    }
+    title = random.choice(starters[mood])
+    st.success(f"Suggested album title: {title}")
+
+
 def tiny_future_planner() -> None:
     st.subheader("Tiny Future Planner")
     ideas = st.multiselect(
@@ -400,8 +533,8 @@ hero(settings)
 st.write("")
 metrics(settings)
 
-overview, memories_tab, notes_tab, planner_tab = st.tabs(
-    ["Smile Dashboard", "Our Little Timeline", "Notes & Coupons", "Next Date Idea"]
+overview, albums_tab, memories_tab, notes_tab, planner_tab = st.tabs(
+    ["Smile Dashboard", "Shared Albums", "Our Little Timeline", "Notes & Coupons", "Next Date Idea"]
 )
 
 with overview:
@@ -454,6 +587,13 @@ with overview:
             """,
             unsafe_allow_html=True,
         )
+
+with albums_tab:
+    album_explorer()
+    st.divider()
+    album_charts()
+    st.divider()
+    next_trip_chooser()
 
 with memories_tab:
     photo_wall()
