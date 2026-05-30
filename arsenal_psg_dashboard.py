@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from pathlib import Path
 import random
 
 import altair as alt
@@ -24,6 +25,8 @@ COLORS = {
     "ink": "#1f2937",
     "soft": "#fff7ed",
 }
+
+PHOTO_DIR = Path(__file__).parent / "assets" / "photos"
 
 
 DEFAULT_REASONS = [
@@ -191,17 +194,31 @@ def sidebar() -> dict:
     }
 
 
+def load_photos() -> list[Path]:
+    if not PHOTO_DIR.exists():
+        return []
+    return sorted(
+        [
+            path
+            for path in PHOTO_DIR.iterdir()
+            if path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+        ]
+    )
+
+
 def days_between(start: date, end: date) -> int:
     return max((end - start).days, 0)
 
 
 def hero(settings: dict) -> None:
+    photos = load_photos()
+    photo_count = len(photos)
     st.markdown(
         f"""
         <div class="hero">
           <span class="tiny-pill">for {settings['her_name']}</span>
           <span class="tiny-pill">from {settings['your_name']}</span>
-          <span class="tiny-pill">made with very serious dashboard science</span>
+          <span class="tiny-pill">{photo_count} favorite photo{'s' if photo_count != 1 else ''} loaded</span>
           <h1>{settings['headline']}</h1>
           <p>{settings['note']}</p>
         </div>
@@ -235,6 +252,38 @@ def reason_machine(settings: dict) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def photo_wall() -> None:
+    photos = load_photos()
+    if not photos:
+        st.info("Add photos to assets/photos to turn this into a personal scrapbook.")
+        return
+
+    st.subheader("A Few Favorite Us Moments")
+    st.caption("These are pulled from the photos you added for the app.")
+    cols = st.columns(min(len(photos), 3))
+    captions = [
+        "Exhibit A: evidence of us being cute.",
+        "A tiny memory with main-character energy.",
+        "One for the smile archive.",
+    ]
+    for idx, photo in enumerate(photos):
+        with cols[idx % len(cols)]:
+            st.image(str(photo), use_container_width=True)
+            st.caption(captions[idx % len(captions)])
+
+
+def featured_photo() -> None:
+    photos = load_photos()
+    if not photos:
+        return
+    if "featured_photo_index" not in st.session_state:
+        st.session_state.featured_photo_index = 0
+    if st.button("Switch featured photo", use_container_width=True):
+        st.session_state.featured_photo_index = (st.session_state.featured_photo_index + 1) % len(photos)
+    st.image(str(photos[st.session_state.featured_photo_index]), use_container_width=True)
+    st.caption("Current featured memory")
 
 
 def memory_chart(memories: pd.DataFrame) -> None:
@@ -323,10 +372,15 @@ overview, memories_tab, notes_tab, planner_tab = st.tabs(
 with overview:
     left, right = st.columns([1.05, 0.95])
     with left:
+        featured_photo()
+    with right:
         st.subheader("Reason Machine")
         reason_machine(settings)
-    with right:
-        st.subheader("Today, Scientifically")
+
+    st.divider()
+    st.subheader("Today, Scientifically")
+    left_chart, right_note = st.columns([1, 0.9])
+    with left_chart:
         mood = pd.DataFrame(
             [
                 ["Missing you", 82],
@@ -350,8 +404,25 @@ with overview:
             .properties(height=310)
         )
         st.altair_chart(chart, use_container_width=True)
+    with right_note:
+        st.markdown(
+            """
+            <div class="love-card">
+              <div style="font-size:14px; font-weight:700; color:#e11d48;">DASHBOARD FINDING</div>
+              <div style="font-size:25px; font-weight:750; margin-top:8px;">
+                The data strongly suggests that you two are, in fact, very cute.
+              </div>
+              <div style="font-size:14px; color:#64748b; margin-top:10px;">
+                Confidence interval: basically obvious.
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 with memories_tab:
+    photo_wall()
+    st.divider()
     st.subheader("Our Little Timeline")
     st.caption("Edit the memories in the code later to make this extremely specific.")
     st.dataframe(DEFAULT_MEMORIES, hide_index=True, use_container_width=True)
