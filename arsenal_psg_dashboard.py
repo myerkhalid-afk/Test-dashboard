@@ -156,7 +156,7 @@ def password_gate() -> None:
     guess = st.text_input("Secret word", type="password", placeholder="hint: the city")
     col_a, col_b = st.columns([0.25, 0.75])
     with col_a:
-        unlock = st.button("Unlock", use_container_width=True)
+        unlock = st.button("Unlock", width="stretch")
     if unlock:
         if guess.strip() == APP_PASSWORD:
             st.session_state.unlocked = True
@@ -319,7 +319,7 @@ def photo_wall() -> None:
     ]
     for idx, photo in enumerate(photos):
         with cols[idx % len(cols)]:
-            st.image(str(photo), use_container_width=True)
+            st.image(str(photo), width="stretch")
             st.caption(captions[idx % len(captions)])
 
 
@@ -329,9 +329,9 @@ def featured_photo() -> None:
         return
     if "featured_photo_index" not in st.session_state:
         st.session_state.featured_photo_index = 0
-    if st.button("Switch featured photo", use_container_width=True):
+    if st.button("Switch featured photo", width="stretch"):
         st.session_state.featured_photo_index = (st.session_state.featured_photo_index + 1) % len(photos)
-    st.image(str(photos[st.session_state.featured_photo_index]), use_container_width=True)
+    st.image(str(photos[st.session_state.featured_photo_index]), width="stretch")
     st.caption("Current featured memory")
 
 
@@ -351,13 +351,13 @@ def memory_chart(memories: pd.DataFrame) -> None:
         )
         .properties(height=300)
     )
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 
 def date_idea_picker() -> None:
     if "date_idea" not in st.session_state:
         st.session_state.date_idea = random.choice(DATE_IDEAS)
-    if st.button("Pick a low-effort plan", use_container_width=True):
+    if st.button("Pick a low-effort plan", width="stretch"):
         st.session_state.date_idea = random.choice(DATE_IDEAS)
     st.markdown(
         f"""
@@ -452,7 +452,7 @@ def album_charts() -> None:
             )
             .properties(height=330)
         )
-        st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart, width="stretch")
     with right:
         place_counts = albums.groupby("Place").size().reset_index(name="Albums")
         donut = (
@@ -465,7 +465,7 @@ def album_charts() -> None:
             )
             .properties(height=330)
         )
-        st.altair_chart(donut, use_container_width=True)
+        st.altair_chart(donut, width="stretch")
 
 
 def next_trip_chooser() -> None:
@@ -570,7 +570,7 @@ with overview:
             )
             .properties(height=310)
         )
-        st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart, width="stretch")
     with right_note:
         st.markdown(
             """
@@ -599,7 +599,7 @@ with memories_tab:
     st.divider()
     st.subheader("Timeline")
     st.caption("Actual dates and trip markers.")
-    st.dataframe(DEFAULT_MEMORIES, hide_index=True, use_container_width=True)
+    st.dataframe(DEFAULT_MEMORIES, hide_index=True, width="stretch")
     memory_chart(DEFAULT_MEMORIES)
 
 with notes_tab:
