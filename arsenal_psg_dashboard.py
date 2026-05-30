@@ -8,7 +8,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
-APP_PASSWORD = "paris"
+APP_PASSWORD = "Paris"
 
 
 st.set_page_config(
