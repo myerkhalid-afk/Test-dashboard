@@ -141,7 +141,7 @@ def password_gate() -> None:
         unsafe_allow_html=True,
     )
     st.write("")
-    guess = st.text_input("Secret word", type="password", placeholder="hint: something only we would know")
+    guess = st.text_input("Secret word", type="password", placeholder="hint: city we spent valentine's in?")
     col_a, col_b = st.columns([0.25, 0.75])
     with col_a:
         unlock = st.button("Unlock", use_container_width=True)
