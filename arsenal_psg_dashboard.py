@@ -8,6 +8,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
+APP_PASSWORD = "paris"
+
+
 st.set_page_config(
     page_title="A Little Dashboard For Us",
     page_icon="heart",
@@ -119,6 +122,37 @@ def add_css() -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def password_gate() -> None:
+    if st.session_state.get("unlocked"):
+        return
+
+    add_css()
+    st.markdown(
+        """
+        <div class="hero">
+          <span class="tiny-pill">private little corner</span>
+          <span class="tiny-pill">for two people only</span>
+          <h1>Before you come in...</h1>
+          <p>This tiny dashboard is password-protected because the cute stuff is classified.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.write("")
+    guess = st.text_input("Secret word", type="password", placeholder="hint: something only we would know")
+    col_a, col_b = st.columns([0.25, 0.75])
+    with col_a:
+        unlock = st.button("Unlock", use_container_width=True)
+    if unlock:
+        if guess.strip() == APP_PASSWORD:
+            st.session_state.unlocked = True
+            st.rerun()
+        else:
+            st.error("Not quite. Cute security remains undefeated.")
+    st.caption("Default secret is set in the app code. Change `APP_PASSWORD` before pushing if you want.")
+    st.stop()
 
 
 def auto_confetti(enabled: bool) -> None:
@@ -357,6 +391,7 @@ def message_builder(settings: dict) -> None:
     st.text_area("Copyable note", lines[mood], height=110)
 
 
+password_gate()
 settings = sidebar()
 add_css()
 auto_confetti(settings["show_confetti"])
